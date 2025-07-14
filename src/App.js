@@ -3,9 +3,11 @@ import axios from 'axios';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import './App.css';
 import logo from './logo.png';
+import Footer from './pages/Footer'; // ✅ Make sure Footer.js exists
 
 function App() {
   const [file, setFile] = useState(null);
+  const [userQuery, setUserQuery] = useState('');
   const [analysis, setAnalysis] = useState(null);
   const [chat, setChat] = useState([]);
   const [userMessage, setUserMessage] = useState('');
@@ -13,11 +15,14 @@ function App() {
   const [showMenu, setShowMenu] = useState(false);
 
   const handleUpload = async () => {
-    if (!file) return alert("Please upload a document");
+    if (!file || !userQuery) {
+      alert("Please upload a document and enter a query.");
+      return;
+    }
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('user_query', 'Summary');
+    formData.append('user_query', userQuery);
 
     setLoading(true);
     try {
@@ -77,14 +82,21 @@ function App() {
         <div className="sidebar">
           <h2>📄 LegalGPT</h2>
           <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+          <input
+            type="text"
+            value={userQuery}
+            onChange={(e) => setUserQuery(e.target.value)}
+            placeholder="Enter your legal query (e.g. Summary)"
+            style={{ marginTop: '8px', padding: '6px', width: '100%' }}
+          />
           <button onClick={handleUpload} disabled={loading}>
             {loading ? 'Analyzing...' : 'Analyze Document'}
           </button>
 
           {analysis && (
             <div className="analysis-box">
-              <h3>📝 Summary</h3>
-              <p>{analysis.result || "❌ No summary available"}</p>
+              <h3>📌 Result</h3>
+              <p>{analysis.result || "❌ No response available"}</p>
 
               <h3>💡 Full Response (Debug)</h3>
               <pre style={{ fontSize: '12px' }}>
@@ -123,6 +135,9 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
