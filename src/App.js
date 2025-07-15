@@ -1,9 +1,12 @@
+// src/App.js
 import React, { useState } from 'react';
 import axios from 'axios';
 import ScrollToBottom from 'react-scroll-to-bottom';
+
 import './App.css';
-import logo from './logo.png';
-import Footer from './pages/Footer'; // ✅ Make sure Footer.js exists
+
+import Header from './pages/Header';   // ✅ new import
+import Footer from './pages/Footer';        // keep Footer
 
 function App() {
   const [file, setFile] = useState(null);
@@ -12,11 +15,11 @@ function App() {
   const [chat, setChat] = useState([]);
   const [userMessage, setUserMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
 
+  /* ---------- Document Processing ---------- */
   const handleUpload = async () => {
     if (!file || !userQuery) {
-      alert("Please upload a document and enter a query.");
+      alert('Please upload a document and enter a query.');
       return;
     }
 
@@ -24,64 +27,72 @@ function App() {
     formData.append('file', file);
     formData.append('user_query', userQuery);
 
-    setLoading(true);
     try {
+      setLoading(true);
       const res = await axios.post(
         'https://legalgpt-duvt.onrender.com/process',
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       );
-
       console.log('🟢 Backend response:', res.data);
       setAnalysis(res.data);
     } catch (err) {
       alert('❌ Failed to process document.');
       console.error(err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
+  /* ---------- Chat Handling ---------- */
   const handleChatSend = async () => {
-    if (!userMessage) return;
+    if (!userMessage.trim()) return;
 
     const newChat = [...chat, { sender: 'user', message: userMessage }];
     setChat(newChat);
     setUserMessage('');
 
     try {
-      const res = await axios.post('https://legalgpt-duvt.onrender.com/chat', {
-        message: userMessage,
-        context: analysis?.result || '',
-      });
+      const res = await axios.post(
+        'https://legalgpt-duvt.onrender.com/chat',
+        {
+          message: userMessage,
+          context: analysis?.result || '',
+        }
+      );
 
-      setChat([...newChat, { sender: 'bot', message: res.data.reply }]);
+      setChat([
+        ...newChat,
+        { sender: 'bot', message: res.data.reply },
+      ]);
     } catch (err) {
-      setChat([...newChat, { sender: 'bot', message: "⚠️ Sorry, something went wrong." }]);
+      setChat([
+        ...newChat,
+        {
+          sender: 'bot',
+          message: '⚠️ Sorry, something went wrong.',
+        },
+      ]);
     }
   };
 
+  /* ---------- Render ---------- */
   return (
     <div className="app-wrapper">
-      {/* Navbar */}
-      <nav className="top-navbar">
-        <div className="nav-brand">
-          <img src={logo} alt="LegalGPT" className="logo-img" />
-          LegalGPT
-        </div>
-        <div className="nav-toggle" onClick={() => setShowMenu(prev => !prev)}>☰</div>
-        <div className={`nav-links ${showMenu ? 'show' : ''}`}>
-          <button>About</button>
-          <button>Info</button>
-          <button>Contact</button>
-        </div>
-      </nav>
+      {/* Global Header */}
+      <Header />
 
       {/* Main Layout */}
       <div className="app-container">
         {/* Sidebar */}
         <div className="sidebar">
           <h2>📄 LegalGPT</h2>
-          <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+
+          <input
+            type="file"
+            onChange={(e) => setFile(e.target.files[0])}
+          />
+
           <input
             type="text"
             value={userQuery}
@@ -89,14 +100,18 @@ function App() {
             placeholder="Enter your legal query (e.g. Summary)"
             style={{ marginTop: '8px', padding: '6px', width: '100%' }}
           />
-          <button onClick={handleUpload} disabled={loading}>
+
+          <button
+            onClick={handleUpload}
+            disabled={loading}
+          >
             {loading ? 'Analyzing...' : 'Analyze Document'}
           </button>
 
           {analysis && (
             <div className="analysis-box">
               <h3>📌 Result</h3>
-              <p>{analysis.result || "❌ No response available"}</p>
+              <p>{analysis.result || '❌ No response available'}</p>
 
               <h3>💡 Full Response (Debug)</h3>
               <pre style={{ fontSize: '12px' }}>
@@ -117,7 +132,10 @@ function App() {
               </div>
             ) : (
               chat.map((entry, i) => (
-                <div key={i} className={`chat-msg ${entry.sender}`}>
+                <div
+                  key={i}
+                  className={`chat-msg ${entry.sender}`}
+                >
                   <span>{entry.message}</span>
                 </div>
               ))
@@ -136,7 +154,7 @@ function App() {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Global Footer */}
       <Footer />
     </div>
   );
