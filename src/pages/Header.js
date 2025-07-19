@@ -19,14 +19,9 @@ const Header = () => {
           className="nav-toggle"
           onClick={() => setShowMenu((prev) => !prev)}
         >
-          ☰
         </div>
 
-        <div className={`nav-links ${showMenu ? 'show' : ''}`}>
-          <button>About</button>
-          <button>Info</button>
-          <button>Contact</button>
-        </div>
+    
       </div>
     </nav>
   );

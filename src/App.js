@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import ScrollToBottom from 'react-scroll-to-bottom';
+import ReactMarkdown from 'react-markdown';
 
 import './App.css';
-
-import Header from './pages/Header';   // ✅ new import
-import Footer from './pages/Footer';        // keep Footer
+import Header from './pages/Header';
+import Footer from './pages/Footer';
 
 function App() {
   const [file, setFile] = useState(null);
@@ -16,7 +16,6 @@ function App() {
   const [userMessage, setUserMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  /* ---------- Document Processing ---------- */
   const handleUpload = async () => {
     if (!file || !userQuery) {
       alert('Please upload a document and enter a query.');
@@ -44,7 +43,6 @@ function App() {
     }
   };
 
-  /* ---------- Chat Handling ---------- */
   const handleChatSend = async () => {
     if (!userMessage.trim()) return;
 
@@ -76,13 +74,17 @@ function App() {
     }
   };
 
-  /* ---------- Render ---------- */
+  // 🔸 Markdown-safe renderer
+  const MarkdownRenderer = ({ content }) => (
+    <div className="markdown-box">
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
+  );
+
   return (
     <div className="app-wrapper">
-      {/* Global Header */}
       <Header />
 
-      {/* Main Layout */}
       <div className="app-container">
         {/* Sidebar */}
         <div className="sidebar">
@@ -111,7 +113,11 @@ function App() {
           {analysis && (
             <div className="analysis-box">
               <h3>📌 Result</h3>
-              <p>{analysis.result || '❌ No response available'}</p>
+              {analysis.result ? (
+                <MarkdownRenderer content={analysis.result} />
+              ) : (
+                <p>❌ No response available</p>
+              )}
 
               <h3>💡 Full Response (Debug)</h3>
               <pre style={{ fontSize: '12px' }}>
@@ -154,7 +160,6 @@ function App() {
         </div>
       </div>
 
-      {/* Global Footer */}
       <Footer />
     </div>
   );
